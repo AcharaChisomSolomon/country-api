@@ -26,7 +26,7 @@ const Country = sequelize.define('Country', {
   },
   currency_code: {
     type: DataTypes.STRING(10),
-    allowNull: false,
+    allowNull: true,
   },
   exchange_rate: {
     type: DataTypes.FLOAT,
