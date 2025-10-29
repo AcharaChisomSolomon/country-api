@@ -1,45 +1,41 @@
 require('dotenv').config();
 const express = require('express');
-const sequelize = require('./config/db');
 const countryRoutes = require('./routes/countryRoutes');
-const fs = require('fs');
+const sequelize = require('./config/db');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-await sequelize.sync({ force: true });
-
 // Middleware
 app.use(express.json());
+app.use('/countries', countryRoutes);
+app.use('/status', (req, res) => res.json({ 
+  total_countries: 0, 
+  last_refreshed_at: null 
+}));
 
-// Ensure cache dir
+// Create cache directory
 const cacheDir = path.join(__dirname, 'cache');
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
 }
 
-// Routes
-app.get('/status', require('./controllers/countryController').getStatus);
-app.use('/countries', countryRoutes);
-
-// Error Handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// Start
-async function start() {
+// Start server with DB sync
+async function startServer() {
   try {
-    await sequelize.sync();
+    console.log('Connecting to database...');
+    await sequelize.sync({ force: true });  // ← Remove after first deploy
     console.log('Database synced');
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on http://0.0.0.0:${PORT}`);
     });
   } catch (err) {
-    console.error('Failed to start:', err);
+    console.error('Failed to start server:', err);
+    process.exit(1);
   }
 }
 
-start();
+startServer();
