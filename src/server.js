@@ -11,10 +11,7 @@ const PORT = process.env.PORT || 8000;
 // Middleware
 app.use(express.json());
 app.use('/countries', countryRoutes);
-app.use('/status', (req, res) => res.json({ 
-  total_countries: 0, 
-  last_refreshed_at: null 
-}));
+app.use('/status',  require('./controllers/countryController').getStatus);
 
 // Create cache directory
 const cacheDir = path.join(__dirname, 'cache');
